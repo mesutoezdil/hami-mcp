@@ -4,6 +4,43 @@ A small MCP server in Go that reads HAMi vGPU metrics from a Kubernetes cluster 
 
 If you run HAMi on Kubernetes, you already get a Prometheus endpoint full of useful numbers about your GPUs. This server scrapes that endpoint and turns it into four tool calls. Plug it into any MCP client (Claude Desktop, an editor extension, your own CLI) and ask questions like "is the L40S on tarantula full?" or "which pod is sitting on that 8 GiB?"
 
+## How the pieces fit together
+
+Two paths through the same `hami-mcp-server` binary. The left one is the Go end to end client in this repo, talking to a local Ollama for the LLM step. The right one is MCP Inspector, the official MCP debug client, talking to the same binary from a browser.
+
+```
+                Command line path                     Browser path
+            (the e2e demo we wrote)              (no extra code, just curl)
+
+         +---------------------+                +-----------------------+
+         |   e2e Go client     |                |  Browser on laptop    |
+         |  cmd/e2e/main.go    |                |                       |
+         +----+-----------+----+                +-----------+-----------+
+              |           |                                 |
+              | stdio     | http :11434                     | http :6274 (UI)
+              v           v                                 | http :6277 (proxy)
+       +-------------+ +---------+                          v
+       | hami-mcp-   | | Ollama  |                  +---------------+
+       | server (Go) | | llama3.2|                  | MCP Inspector |
+       +------+------+ +---------+                  |  (Node.js)    |
+              |                                     +-------+-------+
+              |                                             | stdio (subprocess)
+              | http :31993                                 v
+              v                                     +---------------+
+       +--------------+                             | hami-mcp-     |
+       | HAMi device  |                             | server (Go)   |
+       | plugin pod   |                             +-------+-------+
+       +--------------+                                     |
+                                                            | http :31993
+                                                            v
+                                                     +--------------+
+                                                     | HAMi device  |
+                                                     | plugin pod   |
+                                                     +--------------+
+```
+
+Why two paths. The Go client proves the chain end to end with a real LLM in the loop. It is the "yes, an LLM can read this" demo. MCP Inspector proves the server is a generic MCP server, not tied to our Go client. Any MCP capable tool can spawn it and call its four tools.
+
 ## What is in this repo
 
 ```
@@ -82,6 +119,21 @@ The `e2e` binary spawns the MCP server, calls two tools, and asks an LLM to inte
 ```
 
 Defaults match a local Ollama install. Override with flags if you are pointing at vLLM, OpenRouter, or anything else that speaks the OpenAI chat completions shape.
+
+## Use it from a browser (MCP Inspector)
+
+MCP Inspector is the official browser based MCP debugger. It needs Node.js 22 or newer (older versions emit a warning but still work). The next command starts Inspector and points it at our binary, binding to all interfaces so a browser on a different machine can reach it.
+
+```
+HOST=0.0.0.0 \
+  ALLOWED_ORIGINS="http://YOUR_PUBLIC_IP:6274" \
+  MCP_AUTO_OPEN_ENABLED=false \
+  npx -y @modelcontextprotocol/inspector ./hami-mcp-server
+```
+
+On startup, Inspector prints two ports (6274 for the UI, 6277 for its proxy) and a session token. Open the printed URL on your laptop, paste the absolute path of `hami-mcp-server` into the Command field, leave Arguments empty, click Connect. The four tools appear in the right panel.
+
+If you rebuild the binary, the running Inspector still has the old subprocess. To pick up the new binary, click Disconnect, then Connect, then click the List Tools button in the Tools panel.
 
 ## Use it from Claude Desktop
 

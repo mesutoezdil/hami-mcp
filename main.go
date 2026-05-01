@@ -286,7 +286,7 @@ func handleGetVGPUAllocation(ctx context.Context, req mcp.CallToolRequest) (*mcp
 }
 
 // run_promql: HAMi exposes Prometheus-format metrics, not a PromQL endpoint. We
-// implement metric-name + label-matcher filtering — the most common PromQL shape
+// implement metric-name + label-matcher filtering, the most common PromQL shape
 // (`metric{label="value"}`). Anything beyond that needs a real Prometheus.
 func handleRunPromQL(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	query := req.GetString("query", "")
@@ -534,12 +534,12 @@ func main() {
 	), handleGetGPUMetrics)
 
 	s.AddTool(mcp.NewTool("get_vgpu_allocation",
-		mcp.WithDescription("Return device-level vGPU allocation (memory MB, cores, shared container count). Note: HAMi's /metrics endpoint does not break down by pod; per-pod attribution requires the Kubernetes API."),
+		mcp.WithDescription("Return per-pod vGPU allocation (namespace, pod, device, memory MB, cores) read from HAMi's vGPUMemoryAllocated and vGPUCoreAllocated metrics. Pass namespace and pod_name to filter, leave them empty to get every active allocation."),
 		mcp.WithString("namespace",
-			mcp.Description("Kubernetes namespace (currently informational — see note)."),
+			mcp.Description("Kubernetes namespace to filter on. Leave empty to return every namespace."),
 		),
 		mcp.WithString("pod_name",
-			mcp.Description("Pod name (currently informational — see note)."),
+			mcp.Description("Pod name to filter on. Leave empty to return every pod."),
 		),
 	), handleGetVGPUAllocation)
 
