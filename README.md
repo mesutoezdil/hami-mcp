@@ -32,7 +32,7 @@ The four tools are:
 ## Build
 
 ```
-git clone git@github.com:mesutoezdil/GPUClusterHAMiMCPserverinGo.git hami-mcp
+git clone git@github.com:mesutoezdil/hami-mcp.git
 cd hami-mcp
 go build -o hami-mcp-server .
 go build -o e2e ./cmd/e2e/
