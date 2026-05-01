@@ -8,7 +8,7 @@ This server scrapes that endpoint and turns it into four tool calls.
 
 Plug it into any MCP client and ask questions like "is the L40S on tarantula full?" or "which pod is sitting on that 8 GiB?"
 
-## How the pieces fit together
+### How the pieces fit together
 
 Two paths through the same `hami-mcp-server` binary. 
 
