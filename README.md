@@ -16,7 +16,7 @@ The left one is the Go end to end client in this repo, talking to a local Ollama
 
 The right one is MCP Inspector, the official MCP debug client, talking to the same binary from a browser.
 
-SS
+<img width="1465" height="702" alt="Screenshot 2026-05-01 at 16 56 27" src="https://github.com/user-attachments/assets/04600ca1-94fe-437e-82ad-b1aee499f3fc" />
 
 Why two paths. 
 
