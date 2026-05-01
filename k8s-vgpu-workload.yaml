@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: hami-demo-workload
+  namespace: default
+  labels:
+    app: hami-demo
+spec:
+  restartPolicy: Never
+  containers:
+    - name: cuda
+      image: nvcr.io/nvidia/cuda:12.4.1-base-ubuntu22.04
+      imagePullPolicy: IfNotPresent
+      command:
+        - /bin/bash
+        - -c
+        - |
+          set -e
+          echo "Querying GPU visibility:"
+          nvidia-smi
+          echo "Holding vGPU allocation for 30 minutes..."
+          sleep 1800
+      resources:
+        limits:
+          # HAMi vGPU resources: 1 device, 8 GiB memory, 30% core
+          nvidia.com/gpu: 1
+          nvidia.com/gpumem: 8192
+          nvidia.com/gpucores: 30

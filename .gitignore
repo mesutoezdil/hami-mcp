@@ -1,0 +1,8 @@
+/hami-mcp-server
+/e2e
+/bin/
+*.exe
+.DS_Store
+
+/tmp/
+*.log
